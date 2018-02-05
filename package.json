@@ -1,0 +1,30 @@
+{
+  "name": "queuebot",
+  "version": "1.0.0",
+  "description": "queue bot for leech ba by Jia",
+  "main": "bot.js",
+  "dependencies": {
+    "discord.js": "^11.2.1",
+    "mail-listener2": "^0.3.1",
+    "nodemailer": "^4.4.1",
+    "googleapis": "^25.0.0",
+    "google-auth-library": "^1.2.1"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "n/a"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/n/a.git"
+  },
+  "keywords": [
+    "queuebot"
+  ],
+  "author": "Jia",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/n/a/issues"
+  },
+  "homepage": "https://github.com/n/a#readme"
+}
