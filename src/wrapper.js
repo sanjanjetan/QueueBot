@@ -8,13 +8,13 @@ const mailClient = {'username':'changeme','password':'changeme'}; //email client
  * Flag list, follow the format
  */
 flags = [
-  {
-    flag: 'debug',
-    description: 'uses debug token',
-    execute: function(){
-    	token = debug_token;
-    }
-  }
+	{
+		flag: 'debug',
+		description: 'uses debug token',
+		execute: function(){
+			token = debug_token;
+		}
+	}
 ]
 
 function search_flag(flag) {
@@ -31,17 +31,17 @@ function search_flag(flag) {
  */
 var numArgs = 0
 process.argv.forEach(function (val, index, array) {
-  if(val.startsWith('-')){
-    var flag = search_flag(val.substr(1));
-    if(flag){
-      flag.execute();
-    }else{
-      console.log("unkown flag: "+val);
-      process.exit(1);
-    }
-  }
-  numArgs++;
-  if(numArgs==process.argv.length){
-    bot.run(token,mailClient);
-  }
+	if(val.startsWith('-')){
+		var flag = search_flag(val.substr(1));
+		if(flag){
+			flag.execute();
+		}else{
+			console.log("unkown flag: "+val);
+			process.exit(1);
+		}
+	}
+	numArgs++;
+	if(numArgs==process.argv.length){
+		bot.run(token,mailClient);
+	}
 });
