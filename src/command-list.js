@@ -1,16 +1,61 @@
+// debugging
+const console = (function(){
+	var timestamp = function(){};
+	timestamp.toString = function(){
+		return "[" + (new Date).toLocaleTimeString() + "]";
+	};
+	return {
+		log: this.console.log.bind(this.console, '%s', timestamp)
+	}
+})();
+
 const DEFAULTPREFIX = '/'
 const ADMINPREFIX = '!'
+
+/*
+ * list of commands, descriptions and functions
+ * keep manually sorted aplabetically
+ */
 
 var commands = {
     'add': {
         description: 'adds customer and q role ',
         parameters: ["user tag"],
-        permittedRoles: ["ranks"],
+        permittedRoles: ["ranks","Bots"],
         execute: function(message,params){
-            //message.reply('hello');
-            //TODO
+			var leeches = message.mentions.members;
+			var rolesList = message.channel.guild.roles;
+			leeches.forEach(function(leech){
+				var rolesToAdd = [];
+			 	//if leech has a permitted role, stop this action
+			 	if(isPermitted(leech,commands[params[0]].permittedRoles)){
+					message.reply("you are not permitted to give them these roles");
+					return;
+				}
+				if(!hasRole(leech,"Q")) rolesToAdd.push(rolesList.find("name","Q").id); //if they don't have the roles already
+				if(!hasRole(leech,"customers")) rolesToAdd.push(rolesList.find("name","customers").id);
+
+				if(rolesToAdd.length===0){
+					message.reply(leech+" already has the roles");
+					return;
+				}
+
+				leech.addRoles(rolesToAdd,"added relevant customer roles").then(function(success){
+					message.reply("added roles to "+leech);
+				},function(error){
+					message.reply("error adding customer role");
+				});
+			});
         }
     },
+	'complete':{
+		description: 'removes q role from a user',
+		parameters: [],
+		permittedRoles: [],
+		execute: function(message,params){
+			//TODO
+		},
+	},
     'commands':{
         description: 'displays list of commands',
         parameters: [],
@@ -18,19 +63,12 @@ var commands = {
         execute: function(message,params){
             var response = "command list:";
             for(var command in commands){
-                if(commands.hasOwnProperty(command)){
+                if(commands.hasOwnProperty(command)){ //sanity check
                     /* check permissions */
-                    if(commands[command].permittedRoles.length>0){
-                        var permitted=false;
-                        for(var i=0;i<commands[command].permittedRoles.length;i++){
-                            if(isPermitted(message.member,commands[command].permittedRoles[i])){
-                                permitted=true;
-                                break;
-                            }
-                        }
-                        if(!permitted) continue;
-                    }
+                    var permitted=isPermitted(message.member,commands[command].permittedRoles);
+                    if(!permitted) continue;
 
+										/* appends command to commandlist */
                     response += '\n'+DEFAULTPREFIX+command;
                     for(var i=0;i<commands[command].parameters.length;i++){
                         response += ' <'+commands[command].parameters[i]+'>';
@@ -56,6 +94,7 @@ var commands = {
         execute: function(message,params){
             message.reply('hello');
             //TODO
+			console.log("hello");
         }
     },
     'queue':{
@@ -107,14 +146,75 @@ var commands = {
         help: 'This is a simple test function to get the spreadsheet.',
         permittedRoles: [],
         execute: function(message, params) {
-            
+
         }
     }
+}
+var adminCommands = {
+
+}
+/*
+ * removes all timezones from a user
+ * @user: guild member object
+ * @callback: a function that gets executed upon completion
+ */
+function removeTimezone(user,callback){
+	var timezones = ["EU","USA","AUS"];
+	var roles = [];
+	var i=0;
+	var removing=false;
+	timezones.forEach(function(timezone){
+		if(user.roles.find('name',timezone)){
+			roles.push(user.guild.roles.find("name",timezone).id)
+		}
+	});
+	if(roles.length>0){
+		//async function complete then callback
+		user.removeRoles(roles,"requested in changing timezones").then(function(){
+			callback(); //TODO account for no callback param
+		}).catch(console.error);
+	}else{
+		callback();
+	}
+}
+
+/*
+ * checks if a user has at least one of the set of roles
+ */
+function isPermitted(member,roles){
+	if(roles.length==-0) return true;
+	for(var i=0;i<roles.length;i++){
+		if(hasRole(member,roles[i])) return true;
+	}
+	return false;
+}
+
+/*
+ * a user has a permission role
+ * @member: guild member object
+ * @role: role as a string (their name)
+ * returns boolean
+ */
+function hasRole(member,role){
+	return member.roles.has(getRoleId(member,role));
+}
+
+/*
+ * gets the id of a role
+ * @member: guild member object
+ * @role: role string name
+ * returns id
+ */
+function getRoleId(member,role){
+	return member.guild.roles.find("name",role).id;
 }
 
 module.exports = {
     DEFAULTPREFIX,
     ADMINPREFIX,
-    commands
+    commands,
+	adminCommands,
+	isPermitted,
+	getRoleId,
+	hasRole //maybe don't need this
 }
-
