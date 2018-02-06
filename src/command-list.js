@@ -318,9 +318,9 @@ function getRoleId(member,role){
 }
 
 module.exports = {
-	DEFAULTPREFIX,
-	ADMINPREFIX,
-	commands,
+    DEFAULTPREFIX,
+    ADMINPREFIX,
+    commands,
 	adminCommands,
 	isPermitted,
 	getRoleId,
