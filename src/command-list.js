@@ -19,12 +19,17 @@ const ADMINPREFIX = '!'
 
 var commands = {
     'add': {
-        description: 'adds customer and q role ',
+        description: 'adds customer and q role to a mentioned user or users',
         parameters: ["user tag"],
+		help: 'example use: `'+DEFAULTPREFIX+'add @Queuebot#2414`',
         permittedRoles: ["ranks","Bots"],
         execute: function(message,params){
 			var leeches = message.mentions.members;
 			var rolesList = message.channel.guild.roles;
+			if(!(leeches.length>0)){
+				message.reply(this.help);
+				return;
+			}
 			leeches.forEach(function(leech){
 				var rolesToAdd = [];
 			 	//if leech has a permitted role, stop this action
@@ -50,10 +55,27 @@ var commands = {
     },
 	'complete':{
 		description: 'removes q role from a user',
-		parameters: [],
-		permittedRoles: [],
+		parameters: ["user tag or tags"],
+		help: 'example use: `'+DEFAULTPREFIX+'complete @Queuebot#2414`',
+		permittedRoles: ["ranks"],
 		execute: function(message,params){
-			//TODO
+			var leeches = message.mentions.members;
+			if(!(leeches.length>0)){
+				message.reply(this.help);
+				return;
+			}
+ 			leeches.forEach(function(leech){
+				//check they have role
+				if(!hasRole(leech,"Q")){
+					message.reply(leech.displayName+" does not have Q role to remove");
+					return;
+				}
+				leech.removeRole(message.channel.guild.roles.find("name","Q").id,"remove leech").then(function(value){
+					message.reply("removed customer role");
+				}, function(reason){
+					message.reply("error adding customer role, <@223758462796955648> help");
+				});
+ 		   });
 		},
 	},
     'commands':{
@@ -68,7 +90,7 @@ var commands = {
                     var permitted=isPermitted(message.member,commands[command].permittedRoles);
                     if(!permitted) continue;
 
-										/* appends command to commandlist */
+					/* appends command to commandlist */
                     response += '\n'+DEFAULTPREFIX+command;
                     for(var i=0;i<commands[command].parameters.length;i++){
                         response += ' <'+commands[command].parameters[i]+'>';
@@ -90,7 +112,7 @@ var commands = {
     'help': {
         description: 'displays this help message',
         parameters: [],
-        permittedRoles: [],
+        permittedRoles: ["Server admin"], //TODO change me
         execute: function(message,params){
             message.reply('hello');
             //TODO
@@ -111,12 +133,12 @@ var commands = {
         help: 'timezones to choose from: USA, AUS, and EU. \n Example of usage: `'+DEFAULTPREFIX+'timezone EU`',
         permittedRoles: [],
         execute: function(message,params){
-            if(typeof(params[1]) === 'undefined'){
+            if(typeof(params.args[1]) === 'undefined'){
                 message.reply(this.help);
                 return;
             }
             var user = message.member;
-            var timezone = params[1].toUpperCase();
+            var timezone = params.args[1].toUpperCase();
             switch(timezone){
                 case 'EU':
                 case 'USA':
@@ -137,7 +159,7 @@ var commands = {
         help: "Use this in the queue channel to add someone to the spreadsheet.",
         permittedRoles: [],
         execute: function(message, params){
-
+			//TODO
         }
     },
     'spreadsheet': {
@@ -146,11 +168,97 @@ var commands = {
         help: 'This is a simple test function to get the spreadsheet.',
         permittedRoles: [],
         execute: function(message, params) {
-
+			//TODO
         }
     }
 }
 var adminCommands = {
+	'clearchat':{
+		description: 'clears chat of last 50 messages',
+		parameters: [],
+		permittedRoles: ["stuff","Server admin"],
+		execute: function(message, params){
+			 message.channel.fetchMessages().then(messages => message.channel.bulkDelete(messages)).catch(console.error);
+		}
+	},
+	'commands':{
+		description: 'Displays list of commands for admins',
+		parameters: [],
+		permittedRoles: ["stuff","Server admin"],
+		execute: function(message, params){
+			var response = "command list:";
+            for(var command in adminCommands){
+                if(adminCommands.hasOwnProperty(command)){ //sanity check
+                    /* check permissions */
+                    var permitted=isPermitted(message.member,adminCommands[command].permittedRoles);
+                    if(!permitted) continue;
+					/* appends command to commandlist */
+                    response += '\n'+ADMINPREFIX+command;
+                    for(var i=0;i<adminCommands[command].parameters.length;i++){
+                        response += ' <'+adminCommands[command].parameters[i]+'>';
+                    }
+                }
+                response += ": " + adminCommands[command].description;
+            }
+            message.reply(response);
+		}
+	},
+	'docs':{
+		description: 'Sends Discord.js document link',
+		parameters: [],
+		permittedRoles: ["Server admin"],
+		execute: function(message, params){
+			message.channel.send('https://discord.js.org/#/docs/main/stable/general/welcome');
+		}
+	},
+	'help':{
+		description: 'Displays help for admins and moderators',
+		parameters: [],
+		permittedRoles: ["stuff","Server admin"],
+		execute: function(message, params){
+			//TODO
+		}
+	},
+	'pin':{
+		description: 'Pins message in the channel after the command',
+		parameters: [],
+		permittedRoles: ["stuff","Server admin"],
+		execute: function(message, params){
+			params.args.splice(0,1);
+			var pinnedMessage = params.args.join(" ");
+			message.channel.send(pinnedMessage).then(m => m.pin()).catch(function(){
+				message.reply("error pinning message");
+				console.error;
+			});
+		}
+	},
+	'ping':{
+		description: 'checks the status of the requests module',
+		parameters: [],
+		permittedRoles: ["stuff","Server admin"],
+		execute: function(message, params){
+			params.mailParser.setAdminChannel(message.channel);
+			params.mailParser.ping(message);
+		}
+	},
+	'queue':{
+		description: 'allows modifications to where the default queue channel',
+		parameters: ['-default','-set','-get'],
+		help: '',
+		permittedRoles: ["Server admin"],
+		execute: function(message, params){
+			//TODO
+		}
+	},
+	'reload':{
+		description: 'reconnects requests module',
+		parameters: [],
+		permittedRoles: ["stuff","Server admin"],
+		execute: function(message, params){
+			params.mailParser.stop(); //mailparser autoreboots when disconnected
+			message.reply("reloaded requests module");
+		}
+	}
 
 }
 /*
@@ -210,9 +318,9 @@ function getRoleId(member,role){
 }
 
 module.exports = {
-    DEFAULTPREFIX,
-    ADMINPREFIX,
-    commands,
+	DEFAULTPREFIX,
+	ADMINPREFIX,
+	commands,
 	adminCommands,
 	isPermitted,
 	getRoleId,
