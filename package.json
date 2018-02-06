@@ -2,7 +2,7 @@
   "name": "queuebot",
   "version": "1.0.0",
   "description": "queue bot for leech ba by Jia",
-  "main": "bot.js",
+  "main": "src/wrapper.js",
   "dependencies": {
     "discord.js": "^11.2.1",
     "mail-listener2": "^0.3.1",

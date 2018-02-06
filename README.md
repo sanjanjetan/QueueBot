@@ -10,3 +10,9 @@ More credits to be added for my bot Jia as neccessary.
 - Navigate to your folder and type in "npm install" on your terminal.  This installs all the required packages.
 - Modify src/wrapper.js, the top 3 variables, tokens
 - When done, just simply call 'node wrapper.js' (There are additional parameters that you can add at the end such as -debug)
+
+## HOW TO DEBUG (using Visual Studio Code)
+- Under the Debug tab, click on 'Add Configurations'.  You should see a .vscode folder containing a launch.json file.
+- Add a configuration using 'Node.js - launch program'.
+- Add another property named 'args', which should create an array.  Inside should contain the string "-debug".
+- Run the debugger! 
