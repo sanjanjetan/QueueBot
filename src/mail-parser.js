@@ -35,10 +35,7 @@ function MailParser(mailClient,queue,admin){
 			attachments: false, // download attachments as they are encountered to the project directory
 		});
 
-		m.mailClient = this.mailClient;
-		m.queueChannel = this.queueChannel;
-		m.adminChannel = this.adminChannel;
-		m.init = this.init;
+		m.parent = this;
 
 		m.on("server:connected", function(){
 			console.log("mail server connected");
@@ -48,7 +45,7 @@ function MailParser(mailClient,queue,admin){
 			//https://github.com/chirag04/mail-listener2/issues/8 //for future
 			console.log("=====reconnecting");
 			m = null;
-			m = this.init();
+			m = this.parent.init();
 		});
 
 		m.on("error", function(err){
@@ -62,7 +59,7 @@ function MailParser(mailClient,queue,admin){
 			var date = ('0' + new Date().getDate()).slice(-2);
 			var message="";
 			 if(mail.subject=="admin-test"){
-				 adminchannel.send("Request acknowledged and received.\nMessage: "+mail.text);
+				 this.parent.adminChannel.send("Request acknowledged and received.\nMessage: "+mail.text);
 				 return;
 			 }
 			if(mail.subject=="xp"){
@@ -91,7 +88,7 @@ function MailParser(mailClient,queue,admin){
 					var s0="RSN: "+data.rsn+"\nLeech: BXP\nSkill: "+data.skill+"\nLevel: "+data.level+"\nAmount: "+data.amount+"\nBA completed up to: "+ba+"\n\n\n";
 					var s1="Copy and paste: \n[*] "+date+"/"+month+": "+data.rsn+" - "+amount+ " "+data.skill+" bxp "+ba;
 					message="```".concat(s0.concat(s1.concat("```")));
-					this.queueChannel.send(message).then(m => m.pin()).catch(console.error);;
+					this.parent.queueChannel.send(message).then(m => m.pin()).catch(console.error);;
 				}
 				return;
 			}
@@ -306,7 +303,7 @@ function MailParser(mailClient,queue,admin){
 				 s0 += "\n\n";
 				 var s1="Copy and paste: \n[*] "+date+"/"+month+": "+rsncolor+" - "+leech_simple+ironsimple+enhancer+ba;
 				 message="```".concat(s0.concat(s1.concat("```")));
-				 this.queueChannel.send(message).then(m => m.pin()).catch(console.error);;
+				 this.parent.queueChannel.send(message).then(m => m.pin()).catch(console.error);;
 				 //console.log(message);
 				 return;
 			 }
@@ -343,6 +340,48 @@ function MailParser(mailClient,queue,admin){
 	this.stop = function(){
 		this.mailListener.stop();
 	};
+	this.setAdminChannel = function(channel){
+		this.adminChannel=channel;
+	}
+	this.ping = function(message){
+		var nodemailer = require('nodemailer');
+		var random = makeid();
+		// create reusable transporter object using the default SMTP transport
+		var parent = this;
+		let transporter = nodemailer.createTransport({
+				host: "xo4.x10hosting.com",
+				port: 587,
+				auth: {
+					user: parent.mailClient.username,
+					pass: parent.mailClient.password
+			}
+		});
+
+		// setup email data with unicode symbols
+		let mailOptions = {
+			from: '"Queuebot" <'+parent.mailClient.username+'>', // sender address
+			to: parent.mailClient.username, // list of receivers
+			subject: 'admin-test', // Subject line
+			text: random, // plain text body
+		};
+
+		// send mail with defined transport object
+		transporter.sendMail(mailOptions, (error, info) => {
+			 if (error) {
+				message.channel.send("Test request failed.");
+				console.error;
+				return;
+			 }
+			 message.channel.send("Successfully sent. Ensure this message arrives correctly.\nMessage: "+random);
+		 });
+	}
+}
+function makeid(){
+	var text = "";
+	var possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+	for( var i=0; i < 50; i++ )
+		text += possible.charAt(Math.floor(Math.random() * possible.length));
+	return text;
 }
 
 function nFormatter(num, digits) {
