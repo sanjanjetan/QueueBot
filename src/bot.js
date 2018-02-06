@@ -15,10 +15,11 @@ const bot = new Discord.Client();
 var lastcheck = new Date();
 var mailClient;
 
-const commandList = require('./command-list.js');
-const mailParserModule = require('./mail-parser.js');
 var mailParser;
 var last=0;
+const commandList = require('./command-list.js');
+const mailParserModule = require('./mail-parser.js');
+
 
 /*
  * Parses through a message with the default command prefix
@@ -31,7 +32,8 @@ function handleCommand(message,params){
 		var command = commandList.commands[params[0]];
 		//if the user has the permissions to execute the command
 		if(commandList.isPermitted(message.member,command.permittedRoles)){
-			command.execute(message,params);
+			var commandParams = {args: params};
+			command.execute(message,commandParams);
 		}
 	}
 }
@@ -44,7 +46,8 @@ function handleAdminCommand(message,params){
 	if(params[0] in commandList.adminCommands){
 		var command = commandList.adminCommands[params[0]];
 		if(commandList.isPermitted(message.member,command.permittedRoles)){
-			command.execute(message,params);
+			var commandParams = {args: params, mailParser: mailParser};
+			command.execute(message,commandParams,mailParser);
 		}
 	}
 }
@@ -82,22 +85,6 @@ bot.on('message', message => {
 		   }
 	   }
 
-	   if(message.content.startsWith('/complete')){
-		   if(!rank){
-			   return;
-		   }
-		   var args = message.content.split(" ");
-		   var leeches = message.mentions.members;
-		   leeches.forEach(function(leech){
-			   //console.log(leech.id);
-		   leech.removeRole(message.channel.guild.roles.find("name","Q").id,"remove leech").then(function(value){
-			 message.reply("removed customer role");
-			 }, function(reason){
-			 message.reply("error adding customer role, <@223758462796955648> help");
-			 });
-		   });
-		   return;
-	   }
 	   if (message.content.startsWith('/confirm') ||message.content.startsWith('!confirm')||message.content.startsWith('confirm')){
 		   //make sure in right channel
 		   if(message.channel.name!=queuechannel){
@@ -154,55 +141,7 @@ bot.on('message', message => {
 			return;
 	   }
 
-	   //mod commands
-	   if (!mod & !admin) return;
-	   if (message.content === '!help'){
-		   message.channel.send('Mod commands: !mod');
-	   }
-	   if (message.content.startsWith('!mod')){
-		   var args = message.content.split(" ");
-		   if(typeof args[1]==='undefined'){
-			   message.channel.send("Usage\n'!mod <command>' - commands available: ping, refresh.\n- ping checks the status of the queue bot.\n- refresh reboots in case of issues.");
-		   }
-		   if(args[1]==='ping'){
-					message.channel.send("Sending test request...");
-					adminchannel=message.channel;
-					ping(message);
-		   }
-		   if(args[1]==='refresh') {
-			   mailListener.stop();
-			   mailListener=null;
-			   return;
-		   }
-		   return;
-	   }
-
-
-		//admin commands
-	   if (!admin) return;
-	   if (message.content === '!help'){
-		   message.channel.send('Admin commands: !admin !clearchat !developer');
-		   return;
-	   }
-	   if (message.content === '!clearchat') {
-		   //console.log(message.channel.messages);
-		   message.channel.fetchMessages().then(messages => message.channel.bulkDelete(messages)).catch(console.error);
-		   return;
-	   }
-	   if (message.content === '!developer') {
-		   message.channel.send('Since Jia is bad: https://discord.js.org/#/docs/main/stable/general/welcome');
-		   return;
-	   }
 	   if (message.content.startsWith('!admin')){
-		   var args = message.content.split(" ");
-		   if(typeof args[1]==='undefined'){
-			   message.channel.send("Usage\n'!admin <command>' - commands available: pin, queue.");
-		   }
-		   if(args[1]==='pin'){
-			   args.splice(0,2);
-			   pmessage = args.join(" ");
-			   message.channel.send(pmessage).then(m => m.pin()).catch(console.error);
-		   }
 		   if(args[1]==='queue'){
 			   if(args[2]==='-default'){
 				   queuechannel="queue";
@@ -228,68 +167,11 @@ bot.on('message', message => {
 			   }
 			   message.channel.send("For commanding which channel the queue bot to inspect.\nUsage '!admin queue -<param>'\nParams available: get, set channel, default.\nE.g. !admin queue -get");
 		   }
-		   if(args[1]==='test'){
-	   //message.member.removeRole(message.member.guild.roles.find("name","EU").id,"requested in changing timezones").catch(console.error);
-			   remove_timezone(message.member,function(){console.log("done!")});
-			   if(typeof args[2]==='undefined') return;
-			   if (args[2]==='disconnect'){
-				   mailListener.stop();
-				   message.channel.send("disconnecting listener");
-				   return;
-			   }
-			   if (bot.channels.find("name",args[2]) !== null) {
-				   message.channel.send("i exist");
-			   }
-		   }
 		   return;
-	   }
-	   if (message.content.startsWith('!tts')){
-		   message.delete();
-		   message.channel.send('/tts test');
 	   }
 
 });
 */
-
-function ping(message){
-	var nodemailer = require('nodemailer');
-	var random = makeid();
-	// create reusable transporter object using the default SMTP transport
-	let transporter = nodemailer.createTransport({
-											host: "xo4.x10hosting.com",
-											port: 587,
-											auth: {
-												user: mailClient.username,
-												pass: mailClient.password
-											}
-										});
-
-	// setup email data with unicode symbols
-	let mailOptions = {
-		from: '"Queuebot" <'+mailClient.username+'>', // sender address
-		to: mailClient.username, // list of receivers
-		subject: 'admin-test', // Subject line
-		text: random, // plain text body
-	};
-
-	// send mail with defined transport object
-	transporter.sendMail(mailOptions, (error, info) => {
-		 if (error) {
-			message.channel.send("Test request failed.");
-			return console.log(error);
-		 }
-		 message.channel.send("Successfully sent. Ensure this message arrives correctly.\nMessage: "+random);
-		 });
-}
-function makeid(){
-	var text = "";
-	var possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-
-	for( var i=0; i < 20; i++ )
-		text += possible.charAt(Math.floor(Math.random() * possible.length));
-
-	return text;
-}
 
 exports.run = function(token,mailClient) {
 	bot.on('ready', () => {
@@ -319,7 +201,9 @@ exports.run = function(token,mailClient) {
 			handleCommand(message,args);
 		}
 		/* admin/mod commands */
-		//TODO
+		if(args[0].startsWith(commandList.ADMINPREFIX)){
+			handleAdminCommand(message,args);
+		}
 
 		/* AI responses */
 		//TODO
