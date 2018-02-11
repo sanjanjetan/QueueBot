@@ -9,8 +9,9 @@ const console = (function(){
 	}
 })();
 
-const DEFAULTPREFIX = '/'
-const ADMINPREFIX = '!'
+const DEFAULTPREFIX = '/';
+const ADMINPREFIX = '!';
+var currentQueueChannel = "queue";
 
 /*
  * list of commands, descriptions and functions
@@ -20,8 +21,9 @@ const ADMINPREFIX = '!'
 var commands = {
     'add': {
         description: 'adds customer and q role to a mentioned user or users',
-        parameters: ["user tag"],
-		help: 'example use: `'+DEFAULTPREFIX+'add @Queuebot#2414`',
+		parameters: ["user tag"],
+		require: [],
+		help: 'example use: `'+ DEFAULTPREFIX +'add @Queuebot#2414`',
         permittedRoles: ["ranks","Bots"],
         execute: function(message,params){
 			var leeches = message.mentions.members;
@@ -41,7 +43,7 @@ var commands = {
 				if(!hasRole(leech,"customers")) rolesToAdd.push(rolesList.find("name","customers").id);
 
 				if(rolesToAdd.length===0){
-					message.reply(leech+" already has the roles");
+					message.reply(leech + " already has the roles");
 					return;
 				}
 
@@ -143,9 +145,13 @@ var commands = {
                 case 'EU':
                 case 'USA':
                 case 'AUS':
-                    removeTimezone(user, function(){user.addRole(message.channel.guild.roles.find("name",timezone).id,"added "+timezone).then(function(){
-                        message.reply("timezone successfully changed to "+timezone);
-                    }).catch(console.error);});
+					removeTimezone(user, 
+						function()
+						{
+							user.addRole(message.channel.guild.roles.find("name", timezone).id,"added " + timezone)
+							.then(function(){
+								message.reply("timezone successfully changed to "+timezone
+						);}).catch(console.error);});
                     break;
                 default:
                     message.reply(this.help);
@@ -159,7 +165,52 @@ var commands = {
         help: "Use this in the queue channel to add someone to the spreadsheet.",
         permittedRoles: [],
         execute: function(message, params){
-			//TODO
+			if(message.channel.name != currentQueueChannel) //TODO
+			{
+				console.log(message.author.username + " attempted to use the confirm command in the wrong channel.")
+				return;
+			}
+			var args = message.content.split(' ');
+
+			message.channel.fetchPinnedMessages().then(messages => {
+				if(messages.size > 0) {
+					if(!args[1]) {
+						message.channel.send('Please enter the rsn of the person you are confirming or use the word "-all')
+						return;
+					}
+					else if(args[1] === '-all')
+					{
+						messages.forEach(function(m) {
+							if(m.author.bot) {
+								m.unpin();
+								message.channel.send('Confirmed.  Remember to confirm with the customer in FC/CC.')
+								return;
+							}
+						})
+					}
+					else {
+						var success = false;
+						messages.forEach(function(m) {
+							if(m.content.includes(args[1]) && m.author.bot && !success) // TODO: Filter by rsn
+							{
+								m.unpin();
+								success = true;
+							}
+						})
+
+						if(success) {
+							message.channel.send('Confirmed. Remember to confirm with the customer in FC/CC.')
+						}
+						else {
+							message.channel.send('No request exists.')
+							message.delete();
+						}
+					}
+				}
+				else {
+					message.channel.send('There are no entries to confirm.')
+				}
+			}).catch(console.error)
         }
     },
     'spreadsheet': {
@@ -172,6 +223,7 @@ var commands = {
         }
     }
 }
+
 var adminCommands = {
 	'clearchat':{
 		description: 'clears chat of last 50 messages',
@@ -193,7 +245,7 @@ var adminCommands = {
                     var permitted=isPermitted(message.member,adminCommands[command].permittedRoles);
                     if(!permitted) continue;
 					/* appends command to commandlist */
-                    response += '\n'+ADMINPREFIX+command;
+                    response += '\n' + ADMINPREFIX+command;
                     for(var i=0;i<adminCommands[command].parameters.length;i++){
                         response += ' <'+adminCommands[command].parameters[i]+'>';
                     }
@@ -248,6 +300,30 @@ var adminCommands = {
 		permittedRoles: ["Server admin"],
 		execute: function(message, params){
 			//TODO
+			var args = message.content.split(' ');
+			if(args[2] === parameters[0]) {
+				currentQueueChannel = args[2]; // to set
+				message.channel.send("Queue channel set to #" + currentQueueChannel)
+				return;
+			}
+			else if(args[2] === parameters[1]) {
+				message.channel.send("Queue channel currently set to #" + currentQueueChannel)
+			}
+			else if(args[2] === parameters[2]) {
+				if(!args[3])
+					currentQueueChannel = channel.name;
+				else {
+					if(!bot.channels.find("name", args[3]))
+					 {
+						message.channel.send("Error: channel #" + args[3] + " does not exist")
+						return;
+					 }
+				}
+			}
+			else {
+				message.channel.send("Command which channel to inspect for queue commands")
+			}
+			
 		}
 	},
 	'reload':{

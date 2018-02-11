@@ -8,13 +8,17 @@ var TOKEN_DIR = (process.env.HOME || process.env.HOMEPATH ||
     process.env.USERPROFILE) + '/.credentials/';
 var TOKEN_PATH = TOKEN_DIR + 'sheets.googleapis.com-nodejs-quickstart.json';
 
-fs.readFile('./src/client_secret.json', function processClientSecrets(err, content) {
+var rl = readline.createInterface(
+  process.stdin,
+  process.stdout);
+rl.terminal = true;
+fs.readFile('./client_secret.json', function processClientSecrets(err, content) {
     if(err) {
         console.log('Error loading client secret file ' + err);
         return;
     }
 
-    authorize(JSON.parse(content), testSpreadsheet);
+    authorize(JSON.parse(content), getSheetData);
 })
 
 function authorize(credentials, callback) {
@@ -22,14 +26,15 @@ function authorize(credentials, callback) {
     var clientId = credentials.installed.client_id;
     var redirectUrl = credentials.installed.redirect_uris[0];
     var oauth2Client = new OAuth2(clientId, clientSecret, redirectUrl);
-    fs.readFile(TOKEN_PATH, function(err, token) {
+    getNewToken(oauth2Client, callback);
+    /*fs.readFile(TOKEN_PATH, function(err, token) {
         if (err) {
           getNewToken(oauth2Client, callback);
         } else {
           oauth2Client.credentials = JSON.parse(token);
           callback(oauth2Client);
         }
-      });
+      });*/
 }
 
 function getNewToken(oauth2Client, callback) {
@@ -38,11 +43,7 @@ function getNewToken(oauth2Client, callback) {
       scope: SCOPES
     });
     console.log('Authorize this app by visiting this url: ', authUrl);
-    var rl = readline.createInterface({
-      input: process.stdin,
-      output: process.stdout
-    });
-
+    var code = '';
     rl.question('Enter the code from that page here: ', function(code) {
       rl.close();
       oauth2Client.getToken(code, function(err, token) {
@@ -54,7 +55,7 @@ function getNewToken(oauth2Client, callback) {
         storeToken(token);
         callback(oauth2Client);
       });
-    });
+  });
 }
   
 function storeToken(token) {
@@ -70,19 +71,20 @@ function storeToken(token) {
 }
 
 // This is your function to read the spreadsheet.
-function testSpreadsheet(auth) {
+function getSheetData(auth) {
     var sheets = google.sheets('v4');
     sheets.spreadsheets.values.get({
         auth: auth,
         spreadsheetId: '1LC8BVTtFcKwH6hin9NG6AhyIqkh6IW9b_xZSIcsh4uY',
-        range: 'Sheet1!A1:E',
+        range: 'Sheet1!1:1',
     }, 
     function(err, response) {
         if (err) {
             console.log('The API returned an error: ' + err);
             return;
         }
-        var rows = response.values;
+        var rows = response.data;
+        console.log(rows);
     });
 }
   
