@@ -114,12 +114,24 @@ var commands = {
     'help': {
         description: 'displays this help message',
         parameters: [],
-        permittedRoles: [], //TODO change me
+        permittedRoles: [],
         execute: function(message,params){
 			message.reply('\nIf you wish to request a leech, please fill out this form here: http://w11.zetaboards.com/LeechBA/pages/leechingrs3/ \n\n' + 
 				'Other Links:\nKing Guide for Leechers: http://w11.zetaboards.com/LeechBA/topic/10693049/1/ \n ');
         }
-    },
+	},
+	'resources': {
+		description: 'Resources for ranks in leeches',
+		parameters: [],
+		permittedRoles: ["ranks"],
+		execute: function(message, params) {
+			message.reply('here are the resources for ranks.' + 
+		'\n General Guides (contains basic guides to all roles): http://w11.zetaboards.com/LeechBA/topic/10992439/1/'+
+		'\n Attacker Tips: http://w11.zetaboards.com/LeechBA/topic/11379269/1/' +
+		'\n Defender Guide: http://w11.zetaboards.com/LeechBA/topic/11659560/1/' + 
+		'\n Healer Guide for King: http://w11.zetaboards.com/LeechBA/topic/11530148/1/')
+		}	
+	},
     'queue':{
         description: 'replies with queue url',
         parameters: [],
@@ -127,7 +139,17 @@ var commands = {
         execute: function(message,params){
             message.reply('Queue available here: http://w11.zetaboards.com/LeechBA/topic/11562359/1/#new');
         }
-    },
+	},
+	'trial': {
+		description: 'Trial information',
+		parameters: [],
+		help: 'Shows trial information and posts.',
+		permittedRoles: [],
+		execute: function(message, params) {
+			message.reply('\nFor trial information, please read the information in this link: http://w11.zetaboards.com/LeechBA/topic/11206246/1 \n\n'
+		+ 'The trial form is here: http://w11.zetaboards.com/LeechBA/pages/trialapp/')
+		}
+	},
     'timezone': {
         description: 'allows you to change your timezone role',
         parameters: ["USA AUS or EU"],
@@ -212,15 +234,6 @@ var commands = {
 			}).catch(console.error)
         }
     },
-    'spreadsheet': {
-        description: 'Test function to get spreadsheet',
-        parameters: [],
-        help: 'This is a simple test function to get the spreadsheet.',
-        permittedRoles: [],
-        execute: function(message, params) {
-			//TODO
-        }
-    }
 }
 
 var adminCommands = {
@@ -267,7 +280,7 @@ var adminCommands = {
 		parameters: [],
 		permittedRoles: ["stuff","Server admin"],
 		execute: function(message, params){
-			//TODO
+			//idk
 		}
 	},
 	'pin':{
@@ -379,7 +392,7 @@ function isPermitted(member,roles){
  * @role: role as a string (their name)
  * returns boolean
  */
-function hasRole(member,role){
+function hasRole(member, role){
 	return member.roles.has(getRoleId(member,role));
 }
 
@@ -389,8 +402,12 @@ function hasRole(member,role){
  * @role: role string name
  * returns id
  */
-function getRoleId(member,role){
-	return member.guild.roles.find("name",role).id;
+function getRoleId(member, role){
+	var role = member.guild.roles.find("name", role);
+	if(role)
+		return role.id;
+	else
+		return null;
 }
 
 module.exports = {
