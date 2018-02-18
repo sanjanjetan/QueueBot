@@ -20,7 +20,7 @@ function MailParser(mailClient,queue,admin){
 		var m = new MailListener({
 			username: this.mailClient.username,
 			password: this.mailClient.password,
-			host: "xo4.x10hosting.com",
+			host: this.mailClient.host,
 			port: 993, // imap port
 			tls: true,
 			connTimeout: 10000, // Default by node-imap

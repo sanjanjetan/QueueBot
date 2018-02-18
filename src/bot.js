@@ -31,7 +31,10 @@ function handleCommand(message,params){
 		var command = commandList.commands[params[0]];
 		//if the user has the permissions to execute the command
 		if(commandList.isPermitted(message.member,command.permittedRoles)){
-			var commandParams = {args: params};
+			var commandParams = {
+				args: params,
+				parameters: command.parameters
+			};
 			command.execute(message,commandParams);
 		}
 	}
@@ -45,8 +48,12 @@ function handleAdminCommand(message,params){
 	if(params[0] in commandList.adminCommands){
 		var command = commandList.adminCommands[params[0]];
 		if(commandList.isPermitted(message.member,command.permittedRoles)){
-			var commandParams = {args: params, mailParser: mailParser};
-			command.execute(message,commandParams,mailParser);
+			var commandParams = {
+				args: params, 
+				mailParser: mailParser,
+				parameters: command.parameters
+			};
+			command.execute(message, commandParams);
 		}
 	}
 }

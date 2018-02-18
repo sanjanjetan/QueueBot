@@ -58,7 +58,7 @@ var commands = {
 	'complete':{
 		description: 'removes q role from a user',
 		parameters: ["user tag or tags"],
-		help: 'example use: `'+DEFAULTPREFIX+'complete @Queuebot#2414`',
+		help: 'example use: `'+ DEFAULTPREFIX +'complete @Queuebot#1337`',
 		permittedRoles: ["ranks"],
 		execute: function(message,params){
 			var leeches = message.mentions.members;
@@ -114,11 +114,10 @@ var commands = {
     'help': {
         description: 'displays this help message',
         parameters: [],
-        permittedRoles: ["Server admin"], //TODO change me
+        permittedRoles: [], //TODO change me
         execute: function(message,params){
-            message.reply('hello');
-            //TODO
-			console.log("hello");
+			message.reply('\nIf you wish to request a leech, please fill out this form here: http://w11.zetaboards.com/LeechBA/pages/leechingrs3/ \n\n' + 
+				'Other Links:\nKing Guide for Leechers: http://w11.zetaboards.com/LeechBA/topic/10693049/1/ \n ');
         }
     },
     'queue':{
@@ -132,7 +131,7 @@ var commands = {
     'timezone': {
         description: 'allows you to change your timezone role',
         parameters: ["USA AUS or EU"],
-        help: 'timezones to choose from: USA, AUS, and EU. \n Example of usage: `'+DEFAULTPREFIX+'timezone EU`',
+        help: 'timezones to choose from: USA, AUS, and EU. \n Example of usage: `'+ DEFAULTPREFIX +'timezone EU`',
         permittedRoles: [],
         execute: function(message,params){
             if(typeof(params.args[1]) === 'undefined'){
@@ -295,29 +294,30 @@ var adminCommands = {
 	},
 	'queue':{
 		description: 'allows modifications to where the default queue channel',
-		parameters: ['-default','-set','-get'],
+		parameters: ['-default','-get', '-set'],
 		help: '',
 		permittedRoles: ["Server admin"],
 		execute: function(message, params){
-			//TODO
 			var args = message.content.split(' ');
-			if(args[2] === parameters[0]) {
-				currentQueueChannel = args[2]; // to set
+			if(args[1] === params.parameters[0]) {
+				currentQueueChannel = "queue"; // to set
 				message.channel.send("Queue channel set to #" + currentQueueChannel)
 				return;
 			}
-			else if(args[2] === parameters[1]) {
+			else if(args[1] === params.parameters[1]) {
 				message.channel.send("Queue channel currently set to #" + currentQueueChannel)
 			}
-			else if(args[2] === parameters[2]) {
-				if(!args[3])
+			else if(args[1] === params.parameters[2]) {
+				var channel = message.client.channels.find("name", args[2]);
+
+				if(channel) {
 					currentQueueChannel = channel.name;
+					message.channel.send("Queue channel set to #" + currentQueueChannel)
+					return;
+				}
 				else {
-					if(!bot.channels.find("name", args[3]))
-					 {
-						message.channel.send("Error: channel #" + args[3] + " does not exist")
-						return;
-					 }
+					message.channel.send("Error: channel #" + args[2] + " does not exist")
+					return;				 
 				}
 			}
 			else {
