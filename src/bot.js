@@ -1,7 +1,7 @@
 // debugging
-const console = (function(){
-	var timestamp = function(){};
-	timestamp.toString = function(){
+const console = (function () {
+	var timestamp = function () { };
+	timestamp.toString = function () {
 		return "[" + (new Date).toLocaleTimeString() + "]";
 	};
 	return {
@@ -13,29 +13,26 @@ const Discord = require('discord.js');
 
 const bot = new Discord.Client();
 var lastcheck = new Date();
-var mailClient;
 
-var mailParser;
-var last=0;
+var last = 0;
 const commandList = require('./command-list.js');
-const mailParserModule = require('./mail-parser.js');
 
 /*
  * Parses through a message with the default command prefix
  * @message: message object
  * @params: list of strings split up by spaces
  */
-function handleCommand(message,params){
-	params[0]=params[0].substr(1);//drop prefix
-	if(params[0] in commandList.commands){
+function handleCommand(message, params) {
+	params[0] = params[0].substr(1);//drop prefix
+	if (params[0] in commandList.commands) {
 		var command = commandList.commands[params[0]];
 		//if the user has the permissions to execute the command
-		if(commandList.isPermitted(message.member,command.permittedRoles)){
+		if (commandList.isPermitted(message.member, command.permittedRoles)) {
 			var commandParams = {
 				args: params,
 				parameters: command.parameters
 			};
-			command.execute(message,commandParams);
+			command.execute(message, commandParams);
 		}
 	}
 }
@@ -43,13 +40,13 @@ function handleCommand(message,params){
 /*
  * see handleCommand
  */
-function handleAdminCommand(message,params){
-	params[0]=params[0].substr(1);//drop prefix
-	if(params[0] in commandList.adminCommands){
+function handleAdminCommand(message, params) {
+	params[0] = params[0].substr(1);//drop prefix
+	if (params[0] in commandList.adminCommands) {
 		var command = commandList.adminCommands[params[0]];
-		if(commandList.isPermitted(message.member,command.permittedRoles)){
+		if (commandList.isPermitted(message.member, command.permittedRoles)) {
 			var commandParams = {
-				args: params, 
+				args: params,
 				mailParser: mailParser,
 				parameters: command.parameters
 			};
@@ -58,36 +55,38 @@ function handleAdminCommand(message,params){
 	}
 }
 
-exports.run = function(token,mailClient) {
+exports.run = function (token, mailClient, spreadsheetClient) {
 	bot.on('ready', () => {
 		console.log('bot ready');
 		let adminChannel = bot.channels.find("name", "bot-test");
-		let queueChannel = bot.channels.find("name", "bot-test");
-		mailParser = new mailParserModule.MailParser(mailClient,queueChannel,adminChannel);
-		mailParser.init();
-		/* debugging to see if it autoreconnects
+		let queueChannel = bot.channels.find("name", "queue");
+
+		commandList.init(mailClient, spreadsheetClient, queueChannel, adminChannel);
+
+		/* 
+		debugging to see if it autoreconnects
 		var x = setInterval(function(){
 			mailParser.stop();
 		},5000);//3600000*/
 	});
 
-	bot.on('disconnect', function(erMsg, code){
+	bot.on('disconnect', function (erMsg, code) {
 		console.log('----- Bot disconnected from Discord with code', code, 'for reason:', erMsg, '-----');
 	});
 
-	bot.on('error', function(message){
-		console.log(new Date().toString()+'error recieved', message);
+	bot.on('error', function (message) {
+		console.log(new Date().toString() + 'error recieved', message);
 	});
 
-	bot.on('message', message =>{
+	bot.on('message', message => {
 		var args = message.content.split(" ");
 		/* commands */
-		if(args[0].startsWith(commandList.DEFAULTPREFIX)){
-			handleCommand(message,args);
+		if (args[0].startsWith(commandList.DEFAULTPREFIX)) {
+			handleCommand(message, args);
 		}
 		/* admin/mod commands */
-		if(args[0].startsWith(commandList.ADMINPREFIX)){
-			handleAdminCommand(message,args);
+		if (args[0].startsWith(commandList.ADMINPREFIX)) {
+			handleAdminCommand(message, args);
 		}
 
 		/* AI responses */

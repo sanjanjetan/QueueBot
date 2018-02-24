@@ -8,7 +8,8 @@
     "mail-listener2": "^0.3.1",
     "nodemailer": "^4.4.1",
     "googleapis": "^25.0.0",
-    "google-auth-library": "^1.2.1"
+    "google-auth-library": "^1.2.1",
+    "ascii-tables": "^0.0.1"
   },
   "devDependencies": {},
   "scripts": {

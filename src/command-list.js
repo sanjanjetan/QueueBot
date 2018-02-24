@@ -11,7 +11,11 @@ const console = (function(){
 
 const DEFAULTPREFIX = '/';
 const ADMINPREFIX = '!';
+const MAIL_PARSER_MODULE = require('./mail-parser.js');
+const SPREADSHEET_PARSER_MODULE = require('./spreadsheet-parser.js')
+
 var currentQueueChannel = "queue";
+var mailParser;
 
 /*
  * list of commands, descriptions and functions
@@ -184,7 +188,7 @@ var commands = {
         description: "Confirms a leech to be added onto the queue",
         parameters: [],
         help: "Use this in the queue channel to add someone to the spreadsheet.",
-        permittedRoles: [],
+        permittedRoles: ["ranks"],
         execute: function(message, params){
 			if(message.channel.name != currentQueueChannel) //TODO
 			{
@@ -350,6 +354,7 @@ var adminCommands = {
 	}
 
 }
+
 /*
  * removes all timezones from a user
  * @user: guild member object
@@ -358,19 +363,20 @@ var adminCommands = {
 function removeTimezone(user,callback){
 	var timezones = ["EU","USA","AUS"];
 	var roles = [];
-	var i=0;
+	var i = 0;
 	var removing=false;
 	timezones.forEach(function(timezone){
 		if(user.roles.find('name',timezone)){
 			roles.push(user.guild.roles.find("name",timezone).id)
 		}
 	});
-	if(roles.length>0){
+	if(roles.length > 0){
 		//async function complete then callback
 		user.removeRoles(roles,"requested in changing timezones").then(function(){
 			callback(); //TODO account for no callback param
 		}).catch(console.error);
-	}else{
+	}
+	else{
 		callback();
 	}
 }
@@ -379,9 +385,12 @@ function removeTimezone(user,callback){
  * checks if a user has at least one of the set of roles
  */
 function isPermitted(member,roles){
-	if(roles.length==-0) return true;
-	for(var i=0;i<roles.length;i++){
-		if(hasRole(member,roles[i])) return true;
+	if(roles.length==-0) 
+		return true;
+
+	for(var i=0; i < roles.length; i++){
+		if(hasRole(member,roles[i])) 
+			return true;
 	}
 	return false;
 }
@@ -410,6 +419,16 @@ function getRoleId(member, role){
 		return null;
 }
 
+/* 
+ * 
+ * 
+*/
+function init(mailClient, spreadsheetClient, queueChannel, adminChannel) {
+	mailParser = new MAIL_PARSER_MODULE.MailParser(mailClient, queueChannel, adminChannel);
+	mailParser.init();
+	SPREADSHEET_PARSER_MODULE.init(spreadsheetClient);
+}
+
 module.exports = {
     DEFAULTPREFIX,
     ADMINPREFIX,
@@ -417,5 +436,6 @@ module.exports = {
 	adminCommands,
 	isPermitted,
 	getRoleId,
-	hasRole //maybe don't need this
+	hasRole, //maybe don't need this
+	init
 }

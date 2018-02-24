@@ -1,5 +1,6 @@
 src/wrapper.js
 node_modules/
 .vscode
-src/client_secret.json
+client_secret.json
 last-bot
+token.json
