@@ -47,7 +47,6 @@ function handleAdminCommand(message, params) {
 		if (commandList.isPermitted(message.member, command.permittedRoles)) {
 			var commandParams = {
 				args: params,
-				mailParser: mailParser,
 				parameters: command.parameters
 			};
 			command.execute(message, commandParams);
@@ -59,15 +58,9 @@ exports.run = function (token, mailClient, spreadsheetClient) {
 	bot.on('ready', () => {
 		console.log('bot ready');
 		let adminChannel = bot.channels.find("name", "bot-test");
-		let queueChannel = bot.channels.find("name", "queue");
+		let queueChannel = bot.channels.find("name", "bot-test");
 
 		commandList.init(mailClient, spreadsheetClient, queueChannel, adminChannel);
-
-		/* 
-		debugging to see if it autoreconnects
-		var x = setInterval(function(){
-			mailParser.stop();
-		},5000);//3600000*/
 	});
 
 	bot.on('disconnect', function (erMsg, code) {

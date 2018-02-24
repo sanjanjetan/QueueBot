@@ -351,7 +351,7 @@ function MailParser(mailClient, queue, admin) {
 		// create reusable transporter object using the default SMTP transport
 		var parent = this;
 		let transporter = nodemailer.createTransport({
-			host: "xo4.x10hosting.com",
+			host: parent.mailClient.host,
 			port: 587,
 			auth: {
 				user: parent.mailClient.username,

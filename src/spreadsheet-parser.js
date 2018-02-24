@@ -1,10 +1,20 @@
+const console = (function () {
+	var timestamp = function () { };
+	timestamp.toString = function () {
+		return "[" + (new Date).toLocaleTimeString() + "]";
+	};
+	return {
+		log: this.console.log.bind(this.console, '%s', timestamp)
+	}
+})();
+
 var fs = require('fs');
 var readline = require('readline');
 var google = require('googleapis');
 var OAuth2 = google.auth.OAuth2;
 
 const SCOPES = ['https://www.googleapis.com/auth/spreadsheets.readonly'];
-const TOKEN_PATH = "../token.json";
+const TOKEN_PATH = "./token.json";
 
 var auth;
 var sheets = google.sheets('v4');
@@ -52,7 +62,7 @@ function getNewToken(oauth2Client) {
     });
 }
 
-function getSpreadsheetData(range, spreadsheetId) {
+function getSpreadsheetData(range, spreadsheetId, callback) {
     sheets.spreadsheets.values.get({
         auth: auth,
         spreadsheetId: spreadsheetId,
@@ -61,9 +71,10 @@ function getSpreadsheetData(range, spreadsheetId) {
         function (err, response) {
             if (err) {
                 console.log('The API returned an error: ', err);
+                callback(err)
                 return;
             }
-            return response.data;
+            callback(response);
         })
 }
 
@@ -77,7 +88,7 @@ function writeToSpreadsheet(range, spreadsheetId, data) {
 }
 
 function init() {
-    fs.readFile('../client_secret.json', function (err, content) {
+    fs.readFile('./client_secret.json', function (err, content) {
         if (err) {
             console.log('Error loading client secret file ', err);
             return;
@@ -86,7 +97,6 @@ function init() {
     })
 }
 
-init();
 module.exports = {
     init,
     writeToSpreadsheet,

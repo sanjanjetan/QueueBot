@@ -1,7 +1,7 @@
 // debugging
-const console = (function(){
-	var timestamp = function(){};
-	timestamp.toString = function(){
+const console = (function () {
+	var timestamp = function () { };
+	timestamp.toString = function () {
 		return "[" + (new Date).toLocaleTimeString() + "]";
 	};
 	return {
@@ -12,7 +12,7 @@ const console = (function(){
 const DEFAULTPREFIX = '/';
 const ADMINPREFIX = '!';
 const MAIL_PARSER_MODULE = require('./mail-parser.js');
-const SPREADSHEET_PARSER_MODULE = require('./spreadsheet-parser.js')
+var spreadsheetParser = require('./spreadsheet-parser.js')
 
 var currentQueueChannel = "queue";
 var mailParser;
@@ -23,174 +23,175 @@ var mailParser;
  */
 
 var commands = {
-    'add': {
-        description: 'adds customer and q role to a mentioned user or users',
+	'add': {
+		description: 'adds customer and q role to a mentioned user or users',
 		parameters: ["user tag"],
 		require: [],
-		help: 'example use: `'+ DEFAULTPREFIX +'add @Queuebot#2414`',
-        permittedRoles: ["ranks","Bots"],
-        execute: function(message,params){
+		help: 'example use: `' + DEFAULTPREFIX + 'add @Queuebot#2414`',
+		permittedRoles: ["ranks", "Bots"],
+		execute: function (message, params) {
 			var leeches = message.mentions.members;
 			var rolesList = message.channel.guild.roles;
-			if(!(leeches.length>0)){
-				message.reply(this.help);
+			if (!(leeches.length > 0)) {
+				message.channel.send(this.help);
 				return;
 			}
-			leeches.forEach(function(leech){
+			leeches.forEach(function (leech) {
 				var rolesToAdd = [];
-			 	//if leech has a permitted role, stop this action
-			 	if(isPermitted(leech,commands[params[0]].permittedRoles)){
-					message.reply("you are not permitted to give them these roles");
+				//if leech has a permitted role, stop this action
+				if (isPermitted(leech, commands[params[0]].permittedRoles)) {
+					message.channel.send("you are not permitted to give them these roles");
 					return;
 				}
-				if(!hasRole(leech,"Q")) rolesToAdd.push(rolesList.find("name","Q").id); //if they don't have the roles already
-				if(!hasRole(leech,"customers")) rolesToAdd.push(rolesList.find("name","customers").id);
+				if (!hasRole(leech, "Q")) rolesToAdd.push(rolesList.find("name", "Q").id); //if they don't have the roles already
+				if (!hasRole(leech, "customers")) rolesToAdd.push(rolesList.find("name", "customers").id);
 
-				if(rolesToAdd.length===0){
-					message.reply(leech + " already has the roles");
+				if (rolesToAdd.length === 0) {
+					message.channel.send(leech + " already has the roles");
 					return;
 				}
 
-				leech.addRoles(rolesToAdd,"added relevant customer roles").then(function(success){
-					message.reply("added roles to "+leech);
-				},function(error){
-					message.reply("error adding customer role");
+				leech.addRoles(rolesToAdd, "added relevant customer roles").then(function (success) {
+					message.channel.send("added roles to " + leech);
+				}, function (error) {
+					message.channel.send("error adding customer role");
 				});
 			});
-        }
-    },
-	'complete':{
+		}
+	},
+	'complete': {
 		description: 'removes q role from a user',
 		parameters: ["user tag or tags"],
-		help: 'example use: `'+ DEFAULTPREFIX +'complete @Queuebot#1337`',
+		help: 'example use: `' + DEFAULTPREFIX + 'complete @Queuebot#1337`',
 		permittedRoles: ["ranks"],
-		execute: function(message,params){
+		execute: function (message, params) {
 			var leeches = message.mentions.members;
-			if(!(leeches.length>0)){
-				message.reply(this.help);
+			if (!(leeches.length > 0)) {
+				message.channel.send(this.help);
 				return;
 			}
- 			leeches.forEach(function(leech){
+			leeches.forEach(function (leech) {
 				//check they have role
-				if(!hasRole(leech,"Q")){
-					message.reply(leech.displayName+" does not have Q role to remove");
+				if (!hasRole(leech, "Q")) {
+					message.channel.send(leech.displayName + " does not have Q role to remove");
 					return;
 				}
-				leech.removeRole(message.channel.guild.roles.find("name","Q").id,"remove leech").then(function(value){
-					message.reply("removed customer role");
-				}, function(reason){
-					message.reply("error adding customer role, <@223758462796955648> help");
+				leech.removeRole(message.channel.guild.roles.find("name", "Q").id, "remove leech").then(function (value) {
+					message.channel.send("removed customer role");
+				}, function (reason) {
+					message.channel.send("error adding customer role, <@223758462796955648> help");
 				});
- 		   });
+			});
 		},
 	},
-    'commands':{
-        description: 'displays list of commands',
-        parameters: [],
-        permittedRoles: [],
-        execute: function(message,params){
-            var response = "command list:";
-            for(var command in commands){
-                if(commands.hasOwnProperty(command)){ //sanity check
-                    /* check permissions */
-                    var permitted=isPermitted(message.member,commands[command].permittedRoles);
-                    if(!permitted) continue;
+	'commands': {
+		description: 'displays list of commands',
+		parameters: [],
+		permittedRoles: [],
+		execute: function (message, params) {
+			var response = "command list:";
+			for (var command in commands) {
+				if (commands.hasOwnProperty(command)) { //sanity check
+					/* check permissions */
+					var permitted = isPermitted(message.member, commands[command].permittedRoles);
+					if (!permitted) continue;
 
 					/* appends command to commandlist */
-                    response += '\n'+DEFAULTPREFIX+command;
-                    for(var i=0;i<commands[command].parameters.length;i++){
-                        response += ' <'+commands[command].parameters[i]+'>';
-                    }
-                }
-                response += ": " + commands[command].description;
-            }
-            message.reply(response);
-        }
-    },
-    'creator':{
-        description: 'displays the users who created and developed me!',
-        parameters: [],
-        permittedRoles: [],
-        execute: function(message,params){
-            message.reply('Jia and Sanjan');
-        }
-    },
-    'help': {
-        description: 'displays this help message',
-        parameters: [],
-        permittedRoles: [],
-        execute: function(message,params){
-			message.reply('\nIf you wish to request a leech, please fill out this form here: http://w11.zetaboards.com/LeechBA/pages/leechingrs3/ \n\n' + 
+					response += '\n' + DEFAULTPREFIX + command;
+					for (var i = 0; i < commands[command].parameters.length; i++) {
+						response += ' <' + commands[command].parameters[i] + '>';
+					}
+				}
+				response += ": " + commands[command].description;
+			}
+			message.channel.send(response);
+		}
+	},
+	'creator': {
+		description: 'displays the users who created and developed me!',
+		parameters: [],
+		permittedRoles: [],
+		execute: function (message, params) {
+			message.channel.send('Jia and Sanjan');
+		}
+	},
+	'help': {
+		description: 'displays this help message',
+		parameters: [],
+		permittedRoles: [],
+		execute: function (message, params) {
+			message.channel.send('\nIf you wish to request a leech, please fill out this form here: http://w11.zetaboards.com/LeechBA/pages/leechingrs3/ \n\n' +
 				'Other Links:\nKing Guide for Leechers: http://w11.zetaboards.com/LeechBA/topic/10693049/1/ \n ');
-        }
+		}
 	},
 	'resources': {
 		description: 'Resources for ranks in leeches',
 		parameters: [],
 		permittedRoles: ["ranks"],
-		execute: function(message, params) {
-			message.reply('here are the resources for ranks.' + 
-		'\n General Guides (contains basic guides to all roles): http://w11.zetaboards.com/LeechBA/topic/10992439/1/'+
-		'\n Attacker Tips: http://w11.zetaboards.com/LeechBA/topic/11379269/1/' +
-		'\n Defender Guide: http://w11.zetaboards.com/LeechBA/topic/11659560/1/' + 
-		'\n Healer Guide for King: http://w11.zetaboards.com/LeechBA/topic/11530148/1/')
-		}	
+		execute: function (message, params) {
+			message.channel.send('here are the resources for ranks.' +
+				'\n General Guides (contains basic guides to all roles): http://w11.zetaboards.com/LeechBA/topic/10992439/1/' +
+				'\n Attacker Tips: http://w11.zetaboards.com/LeechBA/topic/11379269/1/' +
+				'\n Defender Guide: http://w11.zetaboards.com/LeechBA/topic/11659560/1/' +
+				'\n Healer Guide for King: http://w11.zetaboards.com/LeechBA/topic/11530148/1/')
+		}
 	},
-    'queue':{
-        description: 'replies with queue url',
-        parameters: [],
-        permittedRoles: ["ranks"],
-        execute: function(message,params){
-            message.reply('Queue available here: http://w11.zetaboards.com/LeechBA/topic/11562359/1/#new');
-        }
+	'queue': {
+		description: 'replies with queue url',
+		parameters: [],
+		permittedRoles: ["ranks"],
+		execute: function (message, params) {
+			message.channel.send('Queue available here: http://w11.zetaboards.com/LeechBA/topic/11562359/1/#new');
+		}
 	},
 	'trial': {
 		description: 'Trial information',
 		parameters: [],
 		help: 'Shows trial information and posts.',
 		permittedRoles: [],
-		execute: function(message, params) {
-			message.reply('\nFor trial information, please read the information in this link: http://w11.zetaboards.com/LeechBA/topic/11206246/1 \n\n'
-		+ 'The trial form is here: http://w11.zetaboards.com/LeechBA/pages/trialapp/')
+		execute: function (message, params) {
+			message.channel.send('\nFor trial information, please read the information in this link: http://w11.zetaboards.com/LeechBA/topic/11206246/1 \n\n'
+				+ 'The trial form is here: http://w11.zetaboards.com/LeechBA/pages/trialapp/')
 		}
 	},
-    'timezone': {
-        description: 'allows you to change your timezone role',
-        parameters: ["USA AUS or EU"],
-        help: 'timezones to choose from: USA, AUS, and EU. \n Example of usage: `'+ DEFAULTPREFIX +'timezone EU`',
-        permittedRoles: [],
-        execute: function(message,params){
-            if(typeof(params.args[1]) === 'undefined'){
-                message.reply(this.help);
-                return;
-            }
-            var user = message.member;
-            var timezone = params.args[1].toUpperCase();
-            switch(timezone){
-                case 'EU':
-                case 'USA':
-                case 'AUS':
-					removeTimezone(user, 
-						function()
-						{
-							user.addRole(message.channel.guild.roles.find("name", timezone).id,"added " + timezone)
-							.then(function(){
-								message.reply("timezone successfully changed to "+timezone
-						);}).catch(console.error);});
-                    break;
-                default:
-                    message.reply(this.help);
-                    break;
-            }
-        }
-    },
-    'confirm': {
-        description: "Confirms a leech to be added onto the queue",
-        parameters: [],
-        help: "Use this in the queue channel to add someone to the spreadsheet.",
-        permittedRoles: ["ranks"],
-        execute: function(message, params){
-			if(message.channel.name != currentQueueChannel) //TODO
+	'timezone': {
+		description: 'allows you to change your timezone role',
+		parameters: ["USA AUS or EU"],
+		help: 'timezones to choose from: USA, AUS, and EU. \n Example of usage: `' + DEFAULTPREFIX + 'timezone EU`',
+		permittedRoles: [],
+		execute: function (message, params) {
+			if (typeof (params.args[1]) === 'undefined') {
+				message.channel.send(this.help);
+				return;
+			}
+			var user = message.member;
+			var timezone = params.args[1].toUpperCase();
+			switch (timezone) {
+				case 'EU':
+				case 'USA':
+				case 'AUS':
+					removeTimezone(user,
+						function () {
+							user.addRole(message.channel.guild.roles.find("name", timezone).id, "added " + timezone)
+								.then(function () {
+									message.channel.send("timezone successfully changed to " + timezone
+									);
+								}).catch(console.error);
+						});
+					break;
+				default:
+					message.channel.send(this.help);
+					break;
+			}
+		}
+	},
+	'confirm': {
+		description: "Confirms a leech to be added onto the queue",
+		parameters: [],
+		help: "Use this in the queue channel to add someone to the spreadsheet.",
+		permittedRoles: ["ranks"],
+		execute: function (message, params) {
+			if (message.channel.name != currentQueueChannel) //TODO
 			{
 				console.log(message.author.username + " attempted to use the confirm command in the wrong channel.")
 				return;
@@ -198,15 +199,14 @@ var commands = {
 			var args = message.content.split(' ');
 
 			message.channel.fetchPinnedMessages().then(messages => {
-				if(messages.size > 0) {
-					if(!args[1]) {
+				if (messages.size > 0) {
+					if (!args[1]) {
 						message.channel.send('Please enter the rsn of the person you are confirming or use the word "-all')
 						return;
 					}
-					else if(args[1] === '-all')
-					{
-						messages.forEach(function(m) {
-							if(m.author.bot) {
+					else if (args[1] === '-all') {
+						messages.forEach(function (m) {
+							if (m.author.bot) {
 								m.unpin();
 								message.channel.send('Confirmed.  Remember to confirm with the customer in FC/CC.')
 								return;
@@ -215,15 +215,15 @@ var commands = {
 					}
 					else {
 						var success = false;
-						messages.forEach(function(m) {
-							if(m.content.includes(args[1]) && m.author.bot && !success) // TODO: Filter by rsn
+						messages.forEach(function (m) {
+							if (m.content.includes(args[1]) && m.author.bot && !success) // TODO: Filter by rsn
 							{
 								m.unpin();
 								success = true;
 							}
 						})
 
-						if(success) {
+						if (success) {
 							message.channel.send('Confirmed. Remember to confirm with the customer in FC/CC.')
 						}
 						else {
@@ -236,123 +236,136 @@ var commands = {
 					message.channel.send('There are no entries to confirm.')
 				}
 			}).catch(console.error)
-        }
-    },
+		}
+	},
 }
 
 var adminCommands = {
-	'clearchat':{
+	'clearchat': {
 		description: 'clears chat of last 50 messages',
 		parameters: [],
-		permittedRoles: ["stuff","Server admin"],
-		execute: function(message, params){
-			 message.channel.fetchMessages().then(messages => message.channel.bulkDelete(messages)).catch(console.error);
+		permittedRoles: ["stuff", "Server admin"],
+		execute: function (message, params) {
+			message.channel.fetchMessages().then(messages => message.channel.bulkDelete(messages)).catch(console.error);
 		}
 	},
-	'commands':{
+	'commands': {
 		description: 'Displays list of commands for admins',
 		parameters: [],
-		permittedRoles: ["stuff","Server admin"],
-		execute: function(message, params){
+		permittedRoles: ["stuff", "Server admin"],
+		execute: function (message, params) {
 			var response = "command list:";
-            for(var command in adminCommands){
-                if(adminCommands.hasOwnProperty(command)){ //sanity check
-                    /* check permissions */
-                    var permitted=isPermitted(message.member,adminCommands[command].permittedRoles);
-                    if(!permitted) continue;
+			for (var command in adminCommands) {
+				if (adminCommands.hasOwnProperty(command)) { //sanity check
+					/* check permissions */
+					var permitted = isPermitted(message.member, adminCommands[command].permittedRoles);
+					if (!permitted) continue;
 					/* appends command to commandlist */
-                    response += '\n' + ADMINPREFIX+command;
-                    for(var i=0;i<adminCommands[command].parameters.length;i++){
-                        response += ' <'+adminCommands[command].parameters[i]+'>';
-                    }
-                }
-                response += ": " + adminCommands[command].description;
-            }
-            message.reply(response);
+					response += '\n' + ADMINPREFIX + command;
+					for (var i = 0; i < adminCommands[command].parameters.length; i++) {
+						response += ' <' + adminCommands[command].parameters[i] + '>';
+					}
+				}
+				response += ": " + adminCommands[command].description;
+			}
+			message.channel.send(response);
 		}
 	},
-	'docs':{
+	'docs': {
 		description: 'Sends Discord.js document link',
 		parameters: [],
 		permittedRoles: ["Server admin"],
-		execute: function(message, params){
+		execute: function (message, params) {
 			message.channel.send('https://discord.js.org/#/docs/main/stable/general/welcome');
 		}
 	},
-	'help':{
+	'help': {
 		description: 'Displays help for admins and moderators',
 		parameters: [],
-		permittedRoles: ["stuff","Server admin"],
-		execute: function(message, params){
+		permittedRoles: ["stuff", "Server admin"],
+		execute: function (message, params) {
 			//idk
 		}
 	},
-	'pin':{
+	'pin': {
 		description: 'Pins message in the channel after the command',
 		parameters: [],
-		permittedRoles: ["stuff","Server admin"],
-		execute: function(message, params){
-			params.args.splice(0,1);
+		permittedRoles: ["stuff", "Server admin"],
+		execute: function (message, params) {
+			params.args.splice(0, 1);
 			var pinnedMessage = params.args.join(" ");
-			message.channel.send(pinnedMessage).then(m => m.pin()).catch(function(){
-				message.reply("error pinning message");
+			message.channel.send(pinnedMessage).then(m => m.pin()).catch(function () {
+				message.channel.send("error pinning message");
 				console.error;
 			});
 		}
 	},
-	'ping':{
+	'ping': {
 		description: 'checks the status of the requests module',
 		parameters: [],
-		permittedRoles: ["stuff","Server admin"],
-		execute: function(message, params){
-			params.mailParser.setAdminChannel(message.channel);
-			params.mailParser.ping(message);
+		permittedRoles: ["stuff", "Server admin"],
+		execute: function (message, params) {
+			mailParser.setAdminChannel(message.channel);
+			mailParser.ping(message);
 		}
 	},
-	'queue':{
+	'queue': {
 		description: 'allows modifications to where the default queue channel',
-		parameters: ['-default','-get', '-set'],
+		parameters: ['-default', '-get', '-set'],
 		help: '',
 		permittedRoles: ["Server admin"],
-		execute: function(message, params){
+		execute: function (message, params) {
 			var args = message.content.split(' ');
-			if(args[1] === params.parameters[0]) {
-				currentQueueChannel = "queue"; // to set
+			if (args[1] === params.parameters[0]) {
+				currentQueueChannel = "queue";
 				message.channel.send("Queue channel set to #" + currentQueueChannel)
 				return;
 			}
-			else if(args[1] === params.parameters[1]) {
+			else if (args[1] === params.parameters[1]) {
 				message.channel.send("Queue channel currently set to #" + currentQueueChannel)
 			}
-			else if(args[1] === params.parameters[2]) {
+			else if (args[1] === params.parameters[2]) {
 				var channel = message.client.channels.find("name", args[2]);
 
-				if(channel) {
+				if (channel) {
 					currentQueueChannel = channel.name;
 					message.channel.send("Queue channel set to #" + currentQueueChannel)
 					return;
 				}
 				else {
 					message.channel.send("Error: channel #" + args[2] + " does not exist")
-					return;				 
+					return;
 				}
 			}
 			else {
 				message.channel.send("Command which channel to inspect for queue commands")
 			}
-			
+
 		}
 	},
-	'reload':{
+	'reload': {
 		description: 'reconnects requests module',
 		parameters: [],
-		permittedRoles: ["stuff","Server admin"],
-		execute: function(message, params){
-			params.mailParser.stop(); //mailparser autoreboots when disconnected
-			message.reply("reloaded requests module");
+		permittedRoles: ["stuff", "Server admin"],
+		execute: function (message, params) {
+			mailParser.stop(); //mailparser autoreboots when disconnected
+			message.channel.send("reloaded requests module");
+		}
+	},
+	'readsheet': {
+		description: 'Gets spreadsheet data',
+		parameters: [],
+		permittedRoles: ["stuff", "Server admin"],
+		execute: function(message, params) {
+			spreadsheetParser.getSpreadsheetData('Sheet1!1:1', '1LlDQ1kMG9CEBou2AlbxMlAt85sSH5Dg35wstl1VSSmw', function(response) {
+				message.channel.send(response.data.values[0]);
+			});
 		}
 	}
+}
 
+function printData(response) {
+	bot.reply(message);
 }
 
 /*
@@ -360,23 +373,23 @@ var adminCommands = {
  * @user: guild member object
  * @callback: a function that gets executed upon completion
  */
-function removeTimezone(user,callback){
-	var timezones = ["EU","USA","AUS"];
+function removeTimezone(user, callback) {
+	var timezones = ["EU", "USA", "AUS"];
 	var roles = [];
 	var i = 0;
-	var removing=false;
-	timezones.forEach(function(timezone){
-		if(user.roles.find('name',timezone)){
-			roles.push(user.guild.roles.find("name",timezone).id)
+	var removing = false;
+	timezones.forEach(function (timezone) {
+		if (user.roles.find('name', timezone)) {
+			roles.push(user.guild.roles.find("name", timezone).id)
 		}
 	});
-	if(roles.length > 0){
+	if (roles.length > 0) {
 		//async function complete then callback
-		user.removeRoles(roles,"requested in changing timezones").then(function(){
+		user.removeRoles(roles, "requested in changing timezones").then(function () {
 			callback(); //TODO account for no callback param
 		}).catch(console.error);
 	}
-	else{
+	else {
 		callback();
 	}
 }
@@ -384,12 +397,12 @@ function removeTimezone(user,callback){
 /*
  * checks if a user has at least one of the set of roles
  */
-function isPermitted(member,roles){
-	if(roles.length==-0) 
+function isPermitted(member, roles) {
+	if (roles.length == -0)
 		return true;
 
-	for(var i=0; i < roles.length; i++){
-		if(hasRole(member,roles[i])) 
+	for (var i = 0; i < roles.length; i++) {
+		if (hasRole(member, roles[i]))
 			return true;
 	}
 	return false;
@@ -401,8 +414,8 @@ function isPermitted(member,roles){
  * @role: role as a string (their name)
  * returns boolean
  */
-function hasRole(member, role){
-	return member.roles.has(getRoleId(member,role));
+function hasRole(member, role) {
+	return member.roles.has(getRoleId(member, role));
 }
 
 /*
@@ -411,9 +424,9 @@ function hasRole(member, role){
  * @role: role string name
  * returns id
  */
-function getRoleId(member, role){
+function getRoleId(member, role) {
 	var role = member.guild.roles.find("name", role);
-	if(role)
+	if (role)
 		return role.id;
 	else
 		return null;
@@ -426,13 +439,13 @@ function getRoleId(member, role){
 function init(mailClient, spreadsheetClient, queueChannel, adminChannel) {
 	mailParser = new MAIL_PARSER_MODULE.MailParser(mailClient, queueChannel, adminChannel);
 	mailParser.init();
-	SPREADSHEET_PARSER_MODULE.init(spreadsheetClient);
+	spreadsheetParser.init(spreadsheetClient);
 }
 
 module.exports = {
-    DEFAULTPREFIX,
-    ADMINPREFIX,
-    commands,
+	DEFAULTPREFIX,
+	ADMINPREFIX,
+	commands,
 	adminCommands,
 	isPermitted,
 	getRoleId,
