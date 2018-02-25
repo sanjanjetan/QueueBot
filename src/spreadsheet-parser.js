@@ -13,11 +13,12 @@ var readline = require('readline');
 var google = require('googleapis');
 var OAuth2 = google.auth.OAuth2;
 
-const SCOPES = ['https://www.googleapis.com/auth/spreadsheets.readonly'];
+const SCOPES = ['https://www.googleapis.com/auth/spreadsheets'];
 const TOKEN_PATH = "./token.json";
 
 var auth;
 var sheets = google.sheets('v4');
+var spreadsheet = '';
 
 function authorize(credentials) {
     var clientSecret = credentials.installed.client_secret;
@@ -40,7 +41,7 @@ function authorize(credentials) {
 function getNewToken(oauth2Client) {
     var authUrl = oauth2Client.generateAuthUrl({
         access_type: 'offline',
-        scope: SCOPES
+        scope: 'https://www.googleapis.com/auth/spreadsheets'
     })
 
     console.log('Authorize this app by visiting this url: ', authUrl);
@@ -62,10 +63,10 @@ function getNewToken(oauth2Client) {
     });
 }
 
-function getSpreadsheetData(range, spreadsheetId, callback) {
+function getSpreadsheetData(range, callback) {
     sheets.spreadsheets.values.get({
         auth: auth,
-        spreadsheetId: spreadsheetId,
+        spreadsheetId: spreadsheet,
         range: range
     },
         function (err, response) {
@@ -78,23 +79,33 @@ function getSpreadsheetData(range, spreadsheetId, callback) {
         })
 }
 
-function writeToSpreadsheet(range, spreadsheetId, data) {
+function writeToSpreadsheet(range, data, callback) {
     sheets.spreadsheets.values.append({
         range: range,
-        spreadsheetId: spreadsheetId,
+        spreadsheetId: spreadsheet,
         data: data,
         insertDataOption: 'INSERT_ROWS'
+    }, function(err, response) {
+        if(err) {
+            callback(err);
+        }
+        else {
+            callback(response);
+        }
+    }, function(error) {
+
     })
 }
 
-function init() {
-    fs.readFile('./client_secret.json', function (err, content) {
+function init(spreadsheetInfo) {
+    fs.readFile(spreadsheetInfo.clientSecretFile, function (err, content) {
         if (err) {
             console.log('Error loading client secret file ', err);
             return;
         }
         authorize(JSON.parse(content));
     })
+    spreadsheet = spreadsheetInfo.spreadsheetId
 }
 
 module.exports = {

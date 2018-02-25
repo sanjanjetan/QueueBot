@@ -357,15 +357,21 @@ var adminCommands = {
 		parameters: [],
 		permittedRoles: ["stuff", "Server admin"],
 		execute: function(message, params) {
-			spreadsheetParser.getSpreadsheetData('Sheet1!1:1', '1LlDQ1kMG9CEBou2AlbxMlAt85sSH5Dg35wstl1VSSmw', function(response) {
+			spreadsheetParser.getSpreadsheetData('Sheet1', function(response) {
 				message.channel.send(response.data.values[0]);
 			});
 		}
+	},
+	'writesheet': {
+		description: 'Writes spreadsheet data',
+		parameters: [],
+		permittedRoles: ["stuff", "Server admin"],
+		execute: function(message, params) {
+			var data = ["", "21/2", "", "Sanjan", "HM10", "1", "1400", "1400", "1400", "1400", "", "", "", "", "", "Testing notes here"]
+			spreadsheetParser.writeToSpreadsheet('Sheet1', data, function(response) {
+			});
+		}
 	}
-}
-
-function printData(response) {
-	bot.reply(message);
 }
 
 /*
