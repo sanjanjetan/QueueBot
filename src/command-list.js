@@ -309,6 +309,19 @@ var adminCommands = {
 			mailParser.ping(message);
 		}
 	},
+	'poll': {
+		description: 'posts and pins a message, adding :thumbsup: :thumbsdown: :shrug: for people to vote',
+		parameters: [],
+		permittedRoles: ["stuff", "Server admin"],
+		execute: function (message, params){
+			message.channel.send(params.args.slice(1).join(' ')).then(async function(message){
+				await message.react("👍");
+				await message.react("👎");
+				await message.react("🤷");
+				await message.pin();
+			});
+		}
+	},
 	'queue': {
 		description: 'allows modifications to where the default queue channel',
 		parameters: ['-default', '-get', '-set'],
@@ -318,11 +331,11 @@ var adminCommands = {
 			var args = message.content.split(' ');
 			if (args[1] === params.parameters[0]) {
 				currentQueueChannel = "queue";
-				message.channel.send("Queue channel set to #" + currentQueueChannel)
+				message.channel.send("Queue channel set to #" + currentQueueChannel);
 				return;
 			}
 			else if (args[1] === params.parameters[1]) {
-				message.channel.send("Queue channel currently set to #" + currentQueueChannel)
+				message.channel.send("Queue channel currently set to #" + currentQueueChannel);
 			}
 			else if (args[1] === params.parameters[2]) {
 				var channel = message.client.channels.find("name", args[2]);
@@ -438,9 +451,9 @@ function getRoleId(member, role) {
 		return null;
 }
 
-/* 
- * 
- * 
+/*
+ *
+ *
 */
 function init(mailClient, spreadsheetClient, queueChannel, adminChannel) {
 	mailParser = new MAIL_PARSER_MODULE.MailParser(mailClient, queueChannel, adminChannel);
