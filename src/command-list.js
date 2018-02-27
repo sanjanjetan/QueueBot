@@ -12,7 +12,9 @@ const console = (function () {
 const DEFAULTPREFIX = '/';
 const ADMINPREFIX = '!';
 const MAIL_PARSER_MODULE = require('./mail-parser.js');
-var spreadsheetParser = require('./spreadsheet-parser.js')
+var spreadsheetParser = require('./spreadsheet-parser.js');
+var AsciiTable = require('ascii-table')
+var _ = require('lodash');
 
 var currentQueueChannel = "queue";
 var mailParser;
@@ -238,6 +240,27 @@ var commands = {
 			}).catch(console.error)
 		}
 	},
+	'getuser': {
+		description: 'Gets queue stats for a user',
+		parameters: [],
+		permittedRoles: ["ranks"],
+		execute: function (message, params) {
+			var args = message.content.split(' ');
+			if(args.length > 0) {
+				spreadsheetParser.getSpreadsheetData('Shortened Queue', function(response) {
+					var userIndex = _.findIndex(response.data.values, function(o) { return _.find(o, function(p) { p.toUpperCase() === args[0].toUpperCase()} !== -1)});
+					if (userIndex > -1) {
+						var table = printValues(response.data.values[0], response.data.values[userIndex]);
+						message.channel.send('```' + table.toString() + '```');
+					}
+					
+				});
+			}
+			else {
+				message.channel.send('No user specified.')
+			}
+		}
+	}
 }
 
 var adminCommands = {
@@ -357,9 +380,13 @@ var adminCommands = {
 		parameters: [],
 		permittedRoles: ["stuff", "Server admin"],
 		execute: function(message, params) {
-			spreadsheetParser.getSpreadsheetData('Sheet1', function(response) {
-				message.channel.send(response.data.values[0]);
+
+			spreadsheetParser.getSpreadsheetData('Shortened Queue', function(response) {
+				var table = printValues(response.data.values[0], response.data.values[1]);
+				message.channel.send('```' + table.toString() + '```');
+				
 			});
+
 		}
 	},
 	'writesheet': {
@@ -368,10 +395,24 @@ var adminCommands = {
 		permittedRoles: ["stuff", "Server admin"],
 		execute: function(message, params) {
 			var data = ["", "21/2", "", "Sanjan", "HM10", "1", "1400", "1400", "1400", "1400", "", "", "", "", "", "Testing notes here"]
-			spreadsheetParser.writeToSpreadsheet('Sheet1', data, function(response) {
+			spreadsheetParser.writeToSpreadsheet('Queue', data, function(response) {
 			});
 		}
 	}
+}
+
+/* 
+ * Prints values from the spreadsheet in readable format.
+ *
+ */
+function printValues(header, rowValues) {
+	var table = AsciiTable.factory({
+		title: 'Queue User Request',
+		heading: header,
+		rows: rowValues
+	});
+
+	return table;
 }
 
 /*
