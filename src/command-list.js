@@ -361,20 +361,24 @@ var adminCommands = {
 				message.channel.send("Queue channel currently set to #" + currentQueueChannel);
 			}
 			else if (args[1] === params.parameters[2]) {
-				var channel = message.client.channels.find("name", args[2]);
+				var channelName = "queue";
+				if(typeof(args[2]) != "undefined"){
+					channelName = args[2];
+				}
+				var channel = message.client.channels.find("name", channelName);
 
 				if (channel) {
 					currentQueueChannel = channel.name;
-					message.channel.send("Queue channel set to #" + currentQueueChannel)
+					message.channel.send("Queue channel set to #" + currentQueueChannel);
 					return;
 				}
 				else {
-					message.channel.send("Error: channel #" + args[2] + " does not exist")
+					message.channel.send("Error: channel #" + args[2] + " does not exist");
 					return;
 				}
 			}
 			else {
-				message.channel.send("Command which channel to inspect for queue commands")
+				message.channel.send("Command which channel to inspect for queue commands");
 			}
 
 		}
