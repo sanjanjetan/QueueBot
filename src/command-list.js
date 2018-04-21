@@ -122,8 +122,8 @@ var commands = {
 		parameters: [],
 		permittedRoles: [],
 		execute: function (message, params) {
-			message.channel.send('\nIf you wish to request a leech, please fill out this form here: http://w11.zetaboards.com/LeechBA/pages/leechingrs3/ \n\n' +
-				'Other Links:\nKing Guide for Leechers: http://w11.zetaboards.com/LeechBA/topic/10693049/1/ \n ');
+			message.channel.send('\nIf you wish to request a leech, please fill out this form here: <http://w11.zetaboards.com/LeechBA/pages/leechingrs3/> \n\n' +
+				'Other Links:\nKing Guide for Leechers: <http://w11.zetaboards.com/LeechBA/topic/10693049/1/> \n ');
 		}
 	},
 	'resources': {
@@ -132,10 +132,10 @@ var commands = {
 		permittedRoles: ["ranks"],
 		execute: function (message, params) {
 			message.channel.send('here are the resources for ranks.' +
-				'\n General Guides (contains basic guides to all roles): http://w11.zetaboards.com/LeechBA/topic/10992439/1/' +
-				'\n Attacker Tips: http://w11.zetaboards.com/LeechBA/topic/11379269/1/' +
-				'\n Defender Guide: http://w11.zetaboards.com/LeechBA/topic/11659560/1/' +
-				'\n Healer Guide for King: http://w11.zetaboards.com/LeechBA/topic/11530148/1/')
+				'\n General Guides (contains basic guides to all roles): <http://w11.zetaboards.com/LeechBA/topic/10992439/1/>' +
+				'\n Attacker Tips: <http://w11.zetaboards.com/LeechBA/topic/11379269/1/>' +
+				'\n Defender Guide: <http://w11.zetaboards.com/LeechBA/topic/11659560/1/>' +
+				'\n Healer Guide for King: <http://w11.zetaboards.com/LeechBA/topic/11530148/1/>')
 		}
 	},
 	'queue': {
@@ -143,7 +143,7 @@ var commands = {
 		parameters: [],
 		permittedRoles: ["ranks"],
 		execute: function (message, params) {
-			message.channel.send('Queue available here: http://w11.zetaboards.com/LeechBA/topic/11562359/1/#new');
+			message.channel.send('Queue available here: <http://w11.zetaboards.com/LeechBA/topic/11562359/1/#new>');
 		}
 	},
 	'trial': {
