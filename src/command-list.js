@@ -249,7 +249,7 @@ var commands = {
 	'getuser': {
 		description: 'Gets queue stats for a user',
 		parameters: [],
-		permittedRoles: ["ranks"],
+		permittedRoles: ["ranks", "Server admin"],
 		execute: function (message, params) {
 			var args = message.content.split(' ');
 			if(args.length > 0) {
