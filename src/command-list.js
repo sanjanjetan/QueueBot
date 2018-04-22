@@ -59,8 +59,8 @@ var commands = {
 					return;
 				}
 
-				leech.addRoles(rolesToAdd, "added relevant customer roles").then(function (success) {
-					message.channel.send("added roles to " + leech);
+				leech.addRoles(rolesToAdd, "Sdded relevant customer roles").then(function (success) {
+					message.channel.send("Added roles to " + leech);
 				}, function (error) {
 					message.channel.send("Error adding customer role.  Error: " + error.message);
 				});
@@ -74,20 +74,20 @@ var commands = {
 		permittedRoles: ["ranks"],
 		execute: function (message, params) {
 			var leeches = message.mentions.members;
-			if (!(leeches.length > 0)) {
+			if (leeches.size === 0) {
 				message.channel.send(this.help);
 				return;
 			}
 			leeches.forEach(function (leech) {
 				//check they have role
 				if (!hasRole(leech, "Q")) {
-					message.channel.send(leech.displayName + " does not have Q role to remove");
+					message.channel.send(leech.displayName + " does not have Q role to remove.");
 					return;
 				}
 				leech.removeRole(message.channel.guild.roles.find("name", "Q").id, "remove leech").then(function (value) {
-					message.channel.send("removed customer role");
-				}, function (reason) {
-					message.channel.send("error adding customer role, <@223758462796955648> help");
+					message.channel.send("Removed customer role");
+				}, function (error) {
+					message.channel.send("Error removing customer role.  Error: " + error.message);
 				});
 			});
 		},
