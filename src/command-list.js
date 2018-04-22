@@ -34,19 +34,24 @@ var commands = {
 		execute: function (message, params) {
 			var leeches = message.mentions.members;
 			var rolesList = message.channel.guild.roles;
-			if (!(leeches.length > 0)) {
+			if (leeches.size === 0) {
 				message.channel.send(this.help);
 				return;
 			}
 			leeches.forEach(function (leech) {
 				var rolesToAdd = [];
 				//if leech has a permitted role, stop this action
-				if (isPermitted(leech, commands[params[0]].permittedRoles)) {
-					message.channel.send("you are not permitted to give them these roles");
+				if (isPermitted(leech, commands['add'].permittedRoles))
+				{
+					message.channel.send("You are not permitted to give them these roles.");
 					return;
 				}
-				if (!hasRole(leech, "Q")) rolesToAdd.push(rolesList.find("name", "Q").id); //if they don't have the roles already
-				if (!hasRole(leech, "customers")) rolesToAdd.push(rolesList.find("name", "customers").id);
+
+				if (!hasRole(leech, "Q")) 
+					rolesToAdd.push(rolesList.find("name", "Q").id); //if they don't have the roles already
+
+				if (!hasRole(leech, "customers")) 
+					rolesToAdd.push(rolesList.find("name", "customers").id);
 
 				if (rolesToAdd.length === 0) {
 					message.channel.send(leech + " already has the roles");
@@ -56,7 +61,7 @@ var commands = {
 				leech.addRoles(rolesToAdd, "added relevant customer roles").then(function (success) {
 					message.channel.send("added roles to " + leech);
 				}, function (error) {
-					message.channel.send("error adding customer role");
+					message.channel.send("Error adding customer role.  Error: " + error.message);
 				});
 			});
 		}
