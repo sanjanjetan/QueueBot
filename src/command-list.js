@@ -182,7 +182,7 @@ var commands = {
 						function () {
 							user.addRole(message.channel.guild.roles.find("name", timezone).id, "added " + timezone)
 								.then(function () {
-									message.channel.send("timezone successfully changed to " + timezone
+									message.channel.send("Timezone successfully changed to " + timezone
 									);
 								}).catch(console.error);
 						});
@@ -209,7 +209,7 @@ var commands = {
 			message.channel.fetchPinnedMessages().then(messages => {
 				if (messages.size > 0) {
 					if (!args[1]) {
-						message.channel.send('Please enter the rsn of the person you are confirming or use the word "-all')
+						message.channel.send('Please enter the rsn of the person you are confirming or use the word "-all.')
 						return;
 					}
 					else if (args[1] === '-all') {
@@ -222,21 +222,17 @@ var commands = {
 						})
 					}
 					else {
-						var success = false;
-						messages.forEach(function (m) {
-							if (m.content.includes(args[1]) && m.author.bot && !success) // TODO: Filter by rsn
-							{
-								m.unpin();
-								success = true;
-							}
-						})
+						var userRequests = messages.filter(m => m.content.toLowerCase().includes(args[1].toLowerCase()));
 
-						if (success) {
-							message.channel.send('Confirmed. Remember to confirm with the customer in FC/CC.')
+						if(userRequests.size === 0) {
+							message.channel.send('No request exists.')
+							message.delete();							
 						}
 						else {
-							message.channel.send('No request exists.')
-							message.delete();
+							userRequests.forEach(function (m) {
+								m.unpin();		
+							})
+							message.channel.send('Confirmed. Remember to confirm with the customer in FC/CC.')
 						}
 					}
 				}
