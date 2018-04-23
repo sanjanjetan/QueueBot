@@ -57,8 +57,8 @@ function handleAdminCommand(message, params) {
 exports.run = function (token, mailClient, spreadsheetClient) {
 	bot.on('ready', () => {
 		console.log('bot ready');
-		let adminChannel = bot.channels.find("name", "bot-test");
-		let queueChannel = bot.channels.find("name", "bot-test");
+		let adminChannel = bot.channels.find("name", "test");
+		let queueChannel = bot.channels.find("name", "queue");
 
 		commandList.init(mailClient, spreadsheetClient, queueChannel, adminChannel);
 	});
