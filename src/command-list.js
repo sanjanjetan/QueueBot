@@ -357,10 +357,10 @@ var adminCommands = {
 			if (args[1] === params.parameters[0]) {
 				currentQueueChannel = "queue";
 				message.channel.send("Queue channel set to #" + currentQueueChannel);
-				return;
 			}
 			else if (args[1] === params.parameters[1]) {
 				message.channel.send("Queue channel currently set to #" + currentQueueChannel);
+				return;
 			}
 			else if (args[1] === params.parameters[2]) {
 				var channelName = message.channel.name;
@@ -369,20 +369,20 @@ var adminCommands = {
  				}
  				var channel = message.client.channels.find("name", channelName);
 				if (channel) {
-					currentQueueChannel = channel;
-					message.channel.send("Queue channel set to #" + currentQueueChannel);
-					return;
+					currentQueueChannel = channel.name;
+					message.channel.send("Queue channel set to " + channel);
 				}
 				else {
 					message.channel.send("Error: channel #" + args[2] + " does not exist");
-					return;
 				}
 			}
 			else {
 				message.channel.send(this.description + 
 						    "\n Parameters available: <-default> <-get> <-set>"
 						    );
+				return;
 			}
+			mailParser.setQueueChannel(currentQueueChannel);
 
 		}
 	},
