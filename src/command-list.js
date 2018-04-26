@@ -380,7 +380,7 @@ var adminCommands = {
 			}
 			else {
 				message.channel.send(this.description + 
-						    "\n Parameters available: "<-default> <-get> <-set>"
+						    "\n Parameters available: <-default> <-get> <-set>"
 						    );
 			}
 
