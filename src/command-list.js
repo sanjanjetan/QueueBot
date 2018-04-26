@@ -364,10 +364,10 @@ var adminCommands = {
 			}
 			else if (args[1] === params.parameters[2]) {
 				var channelName = "queue";
- -				if(typeof(args[2]) != "undefined"){
- -					channelName = args[2];
- -				}
- -				var channel = message.client.channels.find("name", channelName);
+ 				if(typeof(args[2]) != "undefined"){
+ 					channelName = args[2];
+ 				}
+ 				var channel = message.client.channels.find("name", channelName);
 				if (channel) {
 					currentQueueChannel = channel.name;
 					message.channel.send("Queue channel set to #" + currentQueueChannel);
