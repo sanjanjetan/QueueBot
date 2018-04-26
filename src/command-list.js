@@ -382,7 +382,7 @@ var adminCommands = {
 						    );
 				return;
 			}
-			mailParser.setQueueChannel(currentQueueChannel);
+			mailParser.setQueueChannel(message.client.channels.find("name", currentQueueChannel));
 
 		}
 	},
