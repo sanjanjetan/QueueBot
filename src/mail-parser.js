@@ -345,6 +345,9 @@ function MailParser(mailClient, queue, admin) {
 	this.setAdminChannel = function (channel) {
 		this.adminChannel = channel;
 	}
+	this.setQueueChannel = function (channel) {
+		this.queueChannel = channel;
+	}
 	this.ping = function (message) {
 		var nodemailer = require('nodemailer');
 		var random = makeid();
