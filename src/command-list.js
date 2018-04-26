@@ -369,7 +369,7 @@ var adminCommands = {
  				}
  				var channel = message.client.channels.find("name", channelName);
 				if (channel) {
-					currentQueueChannel = channel.name;
+					currentQueueChannel = channel;
 					message.channel.send("Queue channel set to #" + currentQueueChannel);
 					return;
 				}
@@ -379,7 +379,9 @@ var adminCommands = {
 				}
 			}
 			else {
-				message.channel.send("Command which channel to inspect for queue commands");
+				message.channel.send(this.description + 
+						    "\n Parameters available: "<-default> <-get> <-set>"
+						    );
 			}
 
 		}
