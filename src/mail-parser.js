@@ -84,8 +84,8 @@ function MailParser(mailClient, queue, admin) {
 				if (amount > 0 && data.rsn) {
 					amount = nFormatter(amount, 2);
 					var rsn_bxp = (ba == "(NM1)")? "[color=orange]" + data.rsn + "[/color]" : data.rsn;
-					var s0 = "RSN: " + rsn_bxp + "\nLeech: BXP\nSkill: " + data.skill + "\nLevel: " + data.level + "\nAmount: " + data.amount + "\nBA completed up to: " + ba + "\n\n\n";
-					var s1 = "Copy and paste: \n[*] " + date + "/" + month + ": " + data.rsn + " - " + amount + " " + data.skill + " bxp " + ba;
+					var s0 = "RSN: " + data.rsn + "\nLeech: BXP\nSkill: " + data.skill + "\nLevel: " + data.level + "\nAmount: " + data.amount + "\nBA completed up to: " + ba + "\n\n\n";
+					var s1 = "Copy and paste: \n[*] " + date + "/" + month + ": " + rsn_bxp + " - " + amount + " " + data.skill + " bxp " + ba;
 					message = "```".concat(s0.concat(s1.concat("```")));
 					this.parent.queueChannel.send(message).then(m => m.pin()).catch(console.error);;
 				}
