@@ -329,7 +329,7 @@ function MailParser(mailClient, queue, admin) {
 				message += "\n";
 				message += "```";
 				message += "Link to stats: http://services.runescape.com/m=hiscore/compare?user1=" + (data.rsn).replace(/\s/g, "%20");
-				//this.bot.channels.find("name", "trials").send(message);
+				this.bot.channels.find("name", "trials").send(message);
 			}
 		});
 		this.mailListener = m;
